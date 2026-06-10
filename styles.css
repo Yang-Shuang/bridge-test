@@ -8,7 +8,11 @@
   --radius: 16px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -23,11 +27,21 @@ body {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
 }
-.app-header h1 { font-size: 1.5rem; margin-bottom: 8px; }
-.subtitle { font-size: 0.85rem; opacity: 0.9; }
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
 
 /* ========== Tab 导航（纯 CSS） ========== */
-input[name="tab"] { display: none; }
+input[name="tab"] {
+  display: none;
+}
 
 .tab-nav {
   display: flex;
@@ -35,6 +49,12 @@ input[name="tab"] { display: none; }
   padding: 16px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+/* Chrome, Safari, Edge */
+.tab-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-label {
@@ -48,30 +68,38 @@ input[name="tab"] { display: none; }
   transition: all 0.2s;
 }
 
-.tab-label:hover { background: #cbd5e1; }
+.tab-label:hover {
+  background: #cbd5e1;
+}
 
 /* Tab 选中状态 */
-#tab-huimai:checked ~ .tab-nav label[for="tab-huimai"],
-#tab-demo:checked ~ .tab-nav label[for="tab-demo"],
-#tab-test2:checked ~ .tab-nav label[for="tab-test2"],
-#tab-test3:checked ~ .tab-nav label[for="tab-test3"],
-#tab-test4:checked ~ .tab-nav label[for="tab-test4"] {
+#tab-huimai:checked~.tab-nav label[for="tab-huimai"],
+#tab-demo:checked~.tab-nav label[for="tab-demo"],
+#tab-test2:checked~.tab-nav label[for="tab-test2"],
+#tab-test3:checked~.tab-nav label[for="tab-test3"],
+#tab-test4:checked~.tab-nav label[for="tab-test4"] {
   background: var(--primary);
   color: white;
 }
 
 /* ========== 模块面板（纯 CSS） ========== */
-.module-panel { display: none; }
+.module-panel {
+  display: none;
+}
 
-#tab-huimai:checked ~ .container #panel-huimai,
-#tab-demo:checked ~ .container #panel-demo,
-#tab-test2:checked ~ .container #panel-test2,
-#tab-test3:checked ~ .container #panel-test3,
-#tab-test4:checked ~ .container #panel-test4 {
+#tab-huimai:checked~.container #panel-huimai,
+#tab-demo:checked~.container #panel-demo,
+#tab-test2:checked~.container #panel-test2,
+#tab-test3:checked~.container #panel-test3,
+#tab-test4:checked~.container #panel-test4 {
   display: block;
 }
 
-.container { padding: 0 16px 32px; max-width: 960px; margin: 0 auto; }
+.container {
+  padding: 0 16px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
 
 /* ========== 测试卡片网格 ========== */
 .test-grid {
@@ -84,7 +112,7 @@ input[name="tab"] { display: none; }
   background: var(--card-bg);
   padding: 24px 16px;
   border-radius: var(--radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
@@ -95,11 +123,24 @@ input[name="tab"] { display: none; }
   border: none;
 }
 
-.test-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(99,102,241,0.15); }
-.test-card:active { transform: scale(0.97); }
+.test-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
+}
 
-.card-icon { font-size: 2.2rem; }
-.card-title { font-weight: 600; font-size: 1rem; }
+.test-card:active {
+  transform: scale(0.97);
+}
+
+.card-icon {
+  font-size: 2.2rem;
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
 .card-desc {
   font-size: 0.8rem;
   color: var(--text-sub);
@@ -110,6 +151,11 @@ input[name="tab"] { display: none; }
 
 /* ========== 响应式 ========== */
 @media (max-width: 600px) {
-  .test-grid { grid-template-columns: 1fr; }
-  .app-header h1 { font-size: 1.3rem; }
+  .test-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-header h1 {
+    font-size: 1.3rem;
+  }
 }
