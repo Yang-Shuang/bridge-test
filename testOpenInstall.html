@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OpenInstall 测试</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-sub: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            padding: 32px 16px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-radius: 0 0 28px 28px;
+        }
+
+        .header h1 { font-size: 1.4rem; margin-bottom: 8px; }
+        .subtitle { font-size: 0.85rem; opacity: 0.9; }
+
+        .container { padding: 0 16px 32px; max-width: 960px; margin: 0 auto; }
+
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .info-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .code-block {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .test-card {
+            background: var(--card-bg);
+            padding: 28px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .test-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(99,102,241,0.15); }
+        .test-card:active { transform: scale(0.97); }
+
+        .card-icon { font-size: 2rem; }
+        .card-title { font-weight: 600; font-size: 0.95rem; }
+
+        @media (max-width: 600px) {
+            .test-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📦 OpenInstall 测试</h1>
+        <p class="subtitle">智能链接分发 · 快速安装 · 精准唤醒</p>
+    </div>
+
+    <main class="container">
+        <!-- 参数展示 -->
+        <div class="info-card">
+            <h3 class="info-title">📋 当前参数</h3>
+            <div id="output" class="code-block"></div>
+        </div>
+
+        <!-- 测试按钮 -->
+        <div class="test-grid">
+            <!-- wakeupOrInstall -->
+            <button onclick="wakeupOrInstall()" class="test-card">
+                <span class="card-icon">🚀</span>
+                <div class="card-content">
+                    <h3 class="card-title">唤醒或安装</h3>
+                    <p class="card-desc">wakeupOrInstall 方法</p>
+                </div>
+            </button>
+
+            <!-- schemeWakeup -->
+            <button onclick="schemeWakeup()" class="test-card">
+                <span class="card-icon">📱</span>
+                <div class="card-content">
+                    <h3 class="card-title">Scheme 唤醒</h3>
+                    <p class="card-desc">schemeWakeup 方法</p>
+                </div>
+            </button>
+        </div>
+    </main>
+
+    <!-- OpenInstall SDK（核心逻辑，不要改动） -->
+    <script type="text/javascript" charset="UTF-8" src="https://res.openinstall.com/openinstall-d4etma.js"></script>
+    <script type="text/javascript">
+        var data = OpenInstall.parseUrlParams();///openinstall-{appKey}.js中提供的api，解析当前网页url中的查询参数并对data进行赋值
+        window.console.log('data : ' + JSON.stringify(data));
+        data.huimaiMessage = '我是来自javascript的自定义内容';
+        data.shareCode = 'MjMyNDk2ODc2OQ';
+
+        // 全局函数，供按钮 onclick 引用
+        var m;
+        
+        var oi = new OpenInstall({//初始化方法，与openinstall服务器交互，应尽早调用
+            appKey: "d4etma",//appKey为openinstall为应用分配的唯一id（必须传入）
+            onready: function () {//初始化成功回调方法。当初始化完成后，会自动进入
+                // this.schemeWakeup();//尝试使用scheme打开App（主要用于Android以及iOS的QQ环境中）
+                m = this;
+                var button = document.getElementById("downloadButton");
+                if (button) {
+                    button.onclick = function () {//对应button的点击事件
+                        wakeupOrInstall();//此方法为scheme、Universal Link唤醒以及引导下载的作用（必须调用且不可额外自行跳转下载）
+                        return false;
+                    }
+                }
+            }
+        }, data);//初始化时传入data，作为一键拉起/App传参安装时候的参数
+
+        const jsonString = JSON.stringify(data, null, 2);
+        document.getElementById("output").textContent = jsonString;
+
+        // 暴露到全局供 onclick 引用
+        function wakeupOrInstall() { m.wakeupOrInstall(); }
+        function schemeWakeup() { m.schemeWakeup(); }
+    </script>
+
+    <script>
+        // JavaScript代码区域
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('页面已加载');
+        });
+    </script>
+</body>
+
+</html>
