@@ -53,6 +53,15 @@ function shareLink() {
   window.android.toShareNew(JSON.stringify(data));
 }
 
+function isNotificationEnabled() {
+  const res = window.android.isNotificationEnabled();
+	alert("通知状态 : " + res);
+}
+
+function toOpenNotification() {
+  const res = window.android.toOpenNotification();
+}
+
 // ==================== 示例模块（保留原有测试） ====================
 
 // 获取设备信息并打印到控制台
