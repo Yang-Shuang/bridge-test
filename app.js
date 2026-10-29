@@ -62,6 +62,10 @@ function toOpenNotification() {
   const res = window.android.toOpenNotification();
 }
 
+function saveImageToGallery() {
+  const res = window.android.saveImageToGallery('http://pic1.win40000.com/wallpaper/8/57c79ee0d5ddf.jpg');
+}
+
 // ==================== 示例模块（保留原有测试） ====================
 
 // 获取设备信息并打印到控制台
