@@ -55,7 +55,7 @@ function shareLink() {
 
 function isNotificationEnabled() {
   const res = window.android.isNotificationEnabled();
-	alert("通知状态 : " + res);
+  alert("通知状态 : " + res);
 }
 
 function toOpenNotification() {
@@ -65,6 +65,56 @@ function toOpenNotification() {
 function saveImageToGallery() {
   const res = window.android.saveImageToGallery('http://pic1.win40000.com/wallpaper/8/57c79ee0d5ddf.jpg');
 }
+
+// 定义 UgoEvent 对象
+function createUgoEvent() {
+  return {
+    onShow: function () {
+      console.log("[UgoEvent] onShow 被调用");
+      Toast.show('UgoEvent.onShow()');
+    },
+    onUnload: function () {
+      console.log("[UgoEvent] onUnload 被调用");
+      Toast.show('UgoEvent.onUnload()');
+    },
+    onLoginSuccess: function () {
+      console.log("[UgoEvent] onLoginSuccess 被调用");
+      Toast.show('UgoEvent.onLoginSuccess()');
+    },
+    onShareSuccess: function () {
+      console.log("[UgoEvent] onShareSuccess 被调用");
+      Toast.show('UgoEvent.onShareSuccess()');
+    }
+  };
+}
+
+// 初始化：默认开启，与你 HTML 中的初始 UI 保持一致
+if (typeof window.UgoEvent === "undefined") {
+  window.UgoEvent = createUgoEvent();
+}
+
+function updateUgoEventUI(enabled) {
+  var desc = document.getElementById("ugo-event-state");
+
+  if (desc) {
+    desc.textContent = "当前状态: " + (enabled ? "开启" : "关闭");
+  }
+}
+
+function switchUgoEvent() {
+  var enabled;
+  if (typeof window.UgoEvent !== "undefined" && window.UgoEvent !== null) {
+    // 当前开启，删除 UgoEvent
+    delete window.UgoEvent;
+    enabled = false;
+  } else {
+    // 当前关闭，重新定义 UgoEvent
+    window.UgoEvent = createUgoEvent();
+    enabled = true;
+  }
+  updateUgoEventUI(enabled);
+  console.log("[UgoEvent] 当前状态:", enabled ? "开启" : "关闭");
+};
 
 // ==================== 示例模块（保留原有测试） ====================
 

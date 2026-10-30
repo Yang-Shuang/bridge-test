@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Web ↔ App 交互测试工具</title>
   <link rel="stylesheet" href="./styles.css">
+  <script src="./toast.js"></script>
+  <script src="./app.js"></script>
 </head>
 
 <body>
@@ -142,12 +144,30 @@
             <p class="card-desc">window.android.saveImageToGallery('')</p>
           </div>
         </button>
+
+        <button onclick="switchUgoEvent()" class="test-card bridge-card">
+          <span class="card-icon">🔗</span>
+          <div class="card-content">
+            <h3 class="card-title">UgoEvent测试</h3>
+            <p class="card-desc" id="ugo-event-state">当前状态: 开启</p>
+          </div>
+        </button>
+
       </div>
     </section>
 
     <!-- ================= 模块：示例 ================= -->
     <section id="panel-demo" class="module-panel">
       <div class="test-grid">
+        <button onclick="Toast.show('当前时间 : ' + new Date().toLocaleString())" class="test-card bridge-card">
+          <span class="card-icon">🔗</span>
+          <div class="card-content">
+            <h3 class="card-title">Toast 测试</h3>
+            <p class="card-desc">使用网页 toast.js 提示内容</p>
+          </div>
+        </button>
+
+
         <a href="myapp://settings?token=abc123&lang=zh-CN" class="test-card scheme-card">
           <span class="card-icon">⚙️</span>
           <div class="card-content">
@@ -237,9 +257,6 @@
     </section>
 
   </main>
-
-  <!-- ================= JavaScript 引用 ================= -->
-  <script src="./app.js"></script>
 </body>
 
 </html>
