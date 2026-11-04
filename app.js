@@ -116,6 +116,11 @@ function switchUgoEvent() {
   console.log("[UgoEvent] 当前状态:", enabled ? "开启" : "关闭");
 };
 
+function jbzYeePay(){
+  var json = '{"type":"message","data":{"type":"APP_WX_PAY","data":{"paymentNo":"S20260601103746434140268","authCode":"{\"miniProgramPath\":\"pages/fromAppPay/index\",\"miniProgramOrgId\":\"gh_9457a12cbd73\",\"appId\":\"wxebbfb0c332a64879\",\"prePayTn\":\"pages/fromAppPay/index?state=b653697b-e675-44b0-9f9f-6f536304d726&customerNo=10092187226&goodsName=%E8%87%AA%E7%84%B6%E4%B9%8B%E8%87%BB%E4%B8%AD%E5%AE%81%E7%89%B9%E7%BA%A7%E7%BA%A2%E6%9E%B8%E6%9D%9E%28%E4%BF%9D%E8%B4%A8%E6%9C%9F%E5%88%B02026%E5%B9%B412%E6%9C%88%29&customerRequestNo=S20260601103746434140268&orderAmount=39.9&launchSource=SDK_PAY\"}","companay":"yeepay","success":true,"bizCode":"S20260601103746434140268","tid":"S20260601103746434140268","tutelagePay":true},"tid":"S20260601103746434140268"}}';
+  window.Android.postMessage(json);
+}
+
 // ==================== 示例模块（保留原有测试） ====================
 
 // 获取设备信息并打印到控制台
