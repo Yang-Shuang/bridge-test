@@ -122,20 +122,19 @@ function jbzYeePay() {
     "data": {
       "type": "APP_WX_PAY",
       "data": {
-        "paymentNo": "S20260601103746434140268",
-        "authCode": JSON.stringify({
+        "paymentNo": "S20261104181305354949050",
+        "authCode": {
           "miniProgramPath": "pages/fromAppPay/index",
-          "miniProgramOrgId": "gh_9457a12cbd73",
+          "miniProgramOrgId": "gh_241ada54772a",
           "appId": "wxebbfb0c332a64879",
-          "prePayTn": "pages/fromAppPay/index?state=b653697b-e675-44b0-9f9f-6f536304d726&customerNo=10092187226&goodsName=%E8%87%AA%E7%84%B6%E4%B9%8B%E8%87%BB%E4%B8%AD%E5%AE%81%E7%89%B9%E7%BA%A7%E7%BA%A2%E6%9E%B8%E6%9D%9E%28%E4%BF%9D%E8%B4%A8%E6%9C%9F%E5%88%B02026%E5%B9%B412%E6%9C%88%29&customerRequestNo=S20260601103746434140268&orderAmount=39.9&launchSource=SDK_PAY"
-        }),
+          "prePayTn": "pages/fromAppPay/index?state=688fc734-a53c-4c86-b822-e60a9e2828f6&customerNo=10092187226&goodsName=%E6%B5%8B%E8%AF%95%E2%80%94%E2%80%94%E9%85%B1%E6%B2%B9++%E5%8B%BF%E6%8B%8D%E4%B8%8D%E5%8F%91%E8%B4%A7&customerRequestNo=S20261104181305354949050&orderAmount=3.3&launchSource=SDK_PAY"
+        },
         "companay": "yeepay",
         "success": true,
-        "bizCode": "S20260601103746434140268",
-        "tid": "S20260601103746434140268",
+        "bizCode": "S20261104181305354949050",
+        "tid": "S20261104181305354949050_2",
         "tutelagePay": true
-      },
-      "tid": "S20260601103746434140268"
+      }
     }
   };
 
