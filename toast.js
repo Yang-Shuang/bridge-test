@@ -6,21 +6,18 @@
     var SHOW_DURATION = 2000;
     // 淡出动画时间（毫秒）
     var FADE_DURATION = 200;
+    // Toast 之间的垂直间距（像素）
+    var STACK_GAP = 8;
+
     // ==============================
     // 内部变量
     // ==============================
 
-    // 消息队列
-    var toastQueue = [];
+    // 所有 Toast 共用的容器
+    var toastContainer = null;
 
-    // Toast DOM 对象
-    var toastElement = null;
-
-    // 当前是否正在显示 Toast
-    var isShowing = false;
-    // 定时器
-    var hideTimer = null;
-    var nextTimer = null;
+    // DOM 就绪之前暂存的消息
+    var pendingMessages = [];
 
     // 是否正在等待 DOM 就绪
     var waitingForBody = false;
@@ -30,100 +27,163 @@
     var loadHandler = null;
     var readyStateHandler = null;
     var previousOnload = null;
+
     // ==============================
     // 辅助方法
     // ==============================
-    // 安全设置样式属性，兼容旧浏览器
-    function setStyle(style, property, value) {
+    // 安全转换字符串
+    function toMessage(message) {
+        if (message === null || typeof message === "undefined") {
+            return "";
+        }
         try {
-            style[property] = value;
+            return String(message);
         } catch (e) {
-            // 忽略不支持的 CSS 属性
+            return "";
         }
     }
-    // 设置 Transform
-    function setTransform(element, value) {
-        var style = element.style;
-
-        setStyle(style, "webkitTransform", value);
-        setStyle(style, "MozTransform", value);
-        setStyle(style, "msTransform", value);
-        setStyle(style, "OTransform", value);
-        setStyle(style, "transform", value);
+    // 设置透明度，同时兼容旧版 IE
+    function setOpacity(element, opacity) {
+        element.style.opacity = String(opacity / 100);
+        element.style.filter = "alpha(opacity=" + opacity + ")";
     }
-    // 判断浏览器是否支持 Transform
-    function hasTransform(style) {
-        return typeof style.transform !== "undefined" ||
-            typeof style.webkitTransform !== "undefined" ||
-            typeof style.MozTransform !== "undefined";
+    // 判断是否支持 CSS Transition
+    function getTransitionSupport(style) {
+        var property;
+        if (typeof style.transition !== "undefined") {
+            property = "transition";
+        } else if (typeof style.webkitTransition !== "undefined") {
+            property = "webkitTransition";
+        } else if (typeof style.MozTransition !== "undefined") {
+            property = "MozTransition";
+        } else if (typeof style.msTransition !== "undefined") {
+            property = "msTransition";
+        } else if (typeof style.OTransition !== "undefined") {
+            property = "OTransition";
+        }
+        if (!property) {
+            return false;
+        }
+        style[property] = "opacity " + FADE_DURATION + "ms ease";
+        return true;
     }
-    // 设置文字内容，避免 HTML 注入
+    // 安全设置文字，避免 HTML 注入
     function setText(element, message) {
         while (element.firstChild) {
             element.removeChild(element.firstChild);
         }
         element.appendChild(document.createTextNode(message));
     }
+    // 移除 DOM
+    function removeElement(element) {
+        if (element && element.parentNode) {
+            element.parentNode.removeChild(element);
+        }
+    }
     // ==============================
-    // 创建 Toast DOM
+    // 创建公共容器
     // ==============================
-    function createToast() {
+    function createContainer() {
         if (!document.body) {
             return null;
         }
-        // 如果已经创建，不重复创建
-        if (!toastElement) {
-            toastElement = document.createElement("div");
-            toastElement.setAttribute("role", "status");
-            toastElement.setAttribute("aria-live", "polite");
-
-            var style = toastElement.style;
-            style.position = "fixed";
-            style.left = "50%";
-            style.top = "50%";
-
-            style.zIndex = "2147483647";
-
-            style.maxWidth = "80%";
-            style.boxSizing = "border-box";
-            style.webkitBoxSizing = "border-box";
-
-            style.padding = "12px 20px";
-            style.borderRadius = "8px";
-
-            style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-            style.color = "#ffffff";
-
-            style.fontSize = "14px";
-            style.lineHeight = "1.5";
-            style.fontFamily = "Arial, sans-serif";
-
-            style.textAlign = "center";
-            style.wordWrap = "break-word";
-            style.wordBreak = "break-word";
-
-            style.opacity = "0";
-            style.filter = "alpha(opacity=0)";
-
-            style.visibility = "hidden";
-            style.display = "none";
-            style.pointerEvents = "none";
-            // CSS 动画，不支持时自动降级
-            setStyle(style, "transition",
-                "opacity 200ms ease, transform 200ms ease");
-
-            setStyle(style, "webkitTransition",
-                "opacity 200ms ease, -webkit-transform 200ms ease");
-            setTransform(
-                toastElement,
-                "translate(-50%, -50%) scale(0.95)"
-            );
+        // 如果容器已经存在，直接复用
+        if (toastContainer &&
+            toastContainer.parentNode === document.body) {
+            return toastContainer;
         }
-        // 如果 DOM 被外部移除，则重新添加
-        if (toastElement.parentNode !== document.body) {
-            document.body.appendChild(toastElement);
+        toastContainer = document.createElement("div");
+        var style = toastContainer.style;
+
+        // 容器固定在屏幕中央的下边界
+        // 新消息追加到底部，旧消息自然向上移动
+        style.position = "fixed";
+        style.left = "0";
+        style.bottom = "50%";
+        style.width = "100%";
+        style.zIndex = "2147483647";
+        style.textAlign = "center";
+        style.margin = "0";
+        style.padding = "0";
+        // 不影响页面其他元素的点击
+        style.pointerEvents = "none";
+        toastContainer.setAttribute("aria-live", "polite");
+        toastContainer.setAttribute("aria-atomic", "false");
+        document.body.appendChild(toastContainer);
+        return toastContainer;
+    }
+    // ==============================
+    // 创建单条 Toast
+    // ==============================
+    function createToast(message) {
+        var element = document.createElement("div");
+        var style = element.style;
+        element.setAttribute("role", "status");
+        // 基础布局
+        // 使用 display:table 实现内容自适应宽度
+        style.display = "table";
+        style.position = "relative";
+        style.maxWidth = "80%";
+        style.margin = STACK_GAP + "px auto 0";
+        // 文字与外观
+        style.boxSizing = "border-box";
+        style.webkitBoxSizing = "border-box";
+        style.padding = "12px 20px";
+        style.borderRadius = "8px";
+        // 先设置普通背景色，兼容不支持 rgba 的旧浏览器
+        style.backgroundColor = "#333333";
+        style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+        style.color = "#ffffff";
+        style.fontSize = "14px";
+        style.lineHeight = "1.5";
+        style.fontFamily = "Arial, sans-serif";
+        style.textAlign = "center";
+        style.wordWrap = "break-word";
+        style.wordBreak = "break-word";
+        // 初始透明
+        setOpacity(element, 0);
+        style.visibility = "visible";
+        // 动画兼容
+        var transitionSupported = getTransitionSupport(style);
+        // 设置文字
+        setText(element, message);
+        return {
+            element: element,
+            transitionSupported: transitionSupported
+        };
+    }
+    // ==============================
+    // 显示一条 Toast
+    // ==============================
+    function displayToast(message) {
+        var container = createContainer();
+        if (!container) {
+            return;
         }
-        return toastElement;
+        // 每条消息都创建独立 DOM
+        var toast = createToast(message);
+        var element = toast.element;
+        // 添加到公共容器的末尾
+        // 新消息出现，旧消息自动向上移动
+        container.appendChild(element);
+        // 强制浏览器完成布局，确保淡入动画生效
+        element.offsetWidth;
+        // 显示
+        setOpacity(element, 100);
+        // 为当前消息单独创建计时器
+        window.setTimeout(function () {
+            // 开始淡出
+            setOpacity(element, 0);
+            // 支持动画则等待动画结束
+            if (toast.transitionSupported) {
+                window.setTimeout(function () {
+                    removeElement(element);
+                }, FADE_DURATION);
+            } else {
+                // 不支持动画则直接移除
+                removeElement(element);
+            }
+        }, SHOW_DURATION);
     }
     // ==============================
     // DOM 就绪处理
@@ -138,7 +198,11 @@
                 );
             }
             if (loadHandler && window.removeEventListener) {
-                window.removeEventListener("load", loadHandler, false);
+                window.removeEventListener(
+                    "load",
+                    loadHandler,
+                    false
+                );
             }
         }
         if (document.detachEvent) {
@@ -165,15 +229,23 @@
         readyStateHandler = null;
         previousOnload = null;
     }
-    // DOM 就绪回调
+
+    // DOM 就绪
     function handleBodyReady() {
         if (!document.body) {
             return;
         }
         waitingForBody = false;
         removeReadyListeners();
-        displayNext();
+        // 把 DOM 就绪之前的消息一次性显示
+        // 这里只是等待 DOM 创建，不是串行消息队列
+        var messages = pendingMessages;
+        pendingMessages = [];
+        for (var i = 0; i < messages.length; i++) {
+            displayToast(messages[i]);
+        }
     }
+
     // 等待 body 创建
     function waitForBody() {
         if (waitingForBody) {
@@ -189,7 +261,6 @@
             );
             if (typeof window.addEventListener === "function") {
                 loadHandler = handleBodyReady;
-
                 window.addEventListener("load", loadHandler, false);
             }
         } else if (typeof document.attachEvent === "function") {
@@ -199,8 +270,10 @@
                 }
             };
             loadHandler = handleBodyReady;
-
-            document.attachEvent("onreadystatechange", readyStateHandler);
+            document.attachEvent(
+                "onreadystatechange",
+                readyStateHandler
+            );
             if (typeof window.attachEvent === "function") {
                 window.attachEvent("onload", loadHandler);
             }
@@ -221,102 +294,28 @@
             };
             window.onload = loadHandler;
         }
+        // 防止注册事件时 DOM 已经就绪
+        if (document.body) {
+            handleBodyReady();
+        }
     }
-    // ==============================
-    // 显示下一条消息
-    // ==============================
-    function displayNext() {
-        // 正在显示，或者没有待显示消息
-        if (isShowing || toastQueue.length === 0) {
-            return;
-        }
-        // 等待 body 创建
-        if (!document.body) {
-            waitForBody();
-            return;
-        }
-        var element = createToast();
-        if (!element) {
-            return;
-        }
-        // 取出队列中的第一条消息
-        var message = toastQueue.shift();
-        setText(element, message);
-        isShowing = true;
-        // 显示 DOM
-        element.style.display = "block";
-        element.style.visibility = "visible";
-        // 设置动画初始状态
-        element.style.opacity = "0";
-        element.style.filter = "alpha(opacity=0)";
-
-        if (hasTransform(element.style)) {
-            setTransform(
-                element,
-                "translate(-50%, -50%) scale(0.95)"
-            );
-        } else {
-            // 不支持 Transform 时，使用负边距居中
-            element.style.marginLeft =
-                "-" + Math.round(element.offsetWidth / 2) + "px";
-            element.style.marginTop =
-                "-" + Math.round(element.offsetHeight / 2) + "px";
-        }
-        // 强制浏览器完成一次布局，保证动画生效
-        element.offsetWidth;
-        // 设置动画结束状态
-        element.style.opacity = "1";
-        element.style.filter = "alpha(opacity=100)";
-        if (hasTransform(element.style)) {
-            setTransform(
-                element,
-                "translate(-50%, -50%) scale(1)"
-            );
-        } else {
-            element.style.marginLeft =
-                "-" + Math.round(element.offsetWidth / 2) + "px";
-
-            element.style.marginTop =
-                "-" + Math.round(element.offsetHeight / 2) + "px";
-        }
-        // 显示指定时间后开始隐藏
-        hideTimer = window.setTimeout(function () {
-            hideTimer = null;
-            // 开始淡出
-            element.style.opacity = "0";
-            element.style.filter = "alpha(opacity=0)";
-            // 动画结束后显示下一条
-            nextTimer = window.setTimeout(function () {
-                nextTimer = null;
-                element.style.visibility = "hidden";
-                element.style.display = "none";
-                isShowing = false;
-                // 继续处理消息队列
-                displayNext();
-            }, FADE_DURATION);
-        }, SHOW_DURATION);
-    }
-
     // ==============================
     // 对外接口
     // ==============================
     function show(message) {
-        // 统一转换为字符串
-        if (message === null || typeof message === "undefined") {
-            message = "";
+        message = toMessage(message);
+        if (document.body) {
+            // body 已经存在，立即显示
+            displayToast(message);
         } else {
-            try {
-                message = String(message);
-            } catch (e) {
-                message = "";
-            }
+            // body 尚未创建，暂存到 DOM 就绪
+            pendingMessages.push(message);
+            waitForBody();
         }
-        // 消息进入队列
-        toastQueue.push(message);
-        // 尝试显示
-        displayNext();
     }
+    // ==============================
     // 暴露全局接口
+    // ==============================
     window.Toast = {
         show: show
     };
