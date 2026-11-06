@@ -145,8 +145,8 @@ function jbzYeePay() {
 }
 
 window.onAppMessage = function(params) {
-    console.log("收到消息：", params);
-    Toast.show("收到消息：" + params);
+    console.log("收到消息：", JSON.stringify(params));
+    Toast.show("收到消息：" + JSON.stringify(params));
 };
 
 // ==================== 示例模块（保留原有测试） ====================
