@@ -144,6 +144,11 @@ function jbzYeePay() {
   window.Android.postMessage(json);
 }
 
+window.onAppMessage = function(params) {
+    console.log("收到消息：", params);
+    Toast.show("收到消息：" + params);
+};
+
 // ==================== 示例模块（保留原有测试） ====================
 
 // 获取设备信息并打印到控制台
